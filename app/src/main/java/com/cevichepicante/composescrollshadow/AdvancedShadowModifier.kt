@@ -1,0 +1,115 @@
+package com.cevichepicante.composescrollshadow
+
+import android.graphics.BlurMaskFilter
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.node.DrawModifierNode
+import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+
+data class AdvancedShadowSettings(
+    val shape: Shape,
+    val color: Color,
+    val blurDp: Dp,
+    val offsetX: Int,
+    val offsetY: Int
+)
+
+@Composable
+fun Modifier.advancedShadow(
+    shape: Shape,
+    color: Color,
+    blurDp: Dp,
+    offsetX: Int,
+    offsetY: Int,
+    visible: Boolean
+): Modifier {
+    val density = LocalDensity.current
+    val paint = remember(blurDp, color) {
+        Paint().apply {
+            this.color = color
+            val blurPx = with(density) { blurDp.toPx() }
+            if(blurPx > 0f) {
+                asFrameworkPaint().maskFilter = BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
+            }
+        }
+    }
+
+    return this.then(
+        AdvancedShadowElement(
+            paint = paint,
+            offsetX = offsetX,
+            offsetY = offsetY,
+            shape = shape,
+            visible = visible
+        )
+    )
+}
+
+private data class AdvancedShadowElement(
+    val paint: Paint,
+    val offsetX: Int,
+    val offsetY: Int,
+    val shape: Shape,
+    val visible: Boolean
+): ModifierNodeElement<AdvancedShadowModifierNode>() {
+    override fun create(): AdvancedShadowModifierNode {
+        return AdvancedShadowModifierNode(
+            paint = paint,
+            offsetX = offsetX,
+            offsetY = offsetY,
+            shape = shape,
+            visible = visible
+        )
+    }
+
+    override fun update(node: AdvancedShadowModifierNode) {
+        node.visible = visible
+    }
+}
+
+class AdvancedShadowModifierNode(
+    private val paint: Paint,
+    private val offsetX: Int,
+    private val offsetY: Int,
+    private val shape: Shape,
+    var visible: Boolean
+): Modifier.Node(), DrawModifierNode {
+
+    override fun ContentDrawScope.draw() {
+        if(visible) {
+            drawShadow()
+        }
+        drawContent()
+    }
+
+    private fun ContentDrawScope.drawShadow() {
+        val offsetXPx = offsetX.times(density)
+        val offsetYPx = offsetY.times(density)
+        val shadowWidth = size.width
+        val shadowHeight = size.height
+
+        if(shadowWidth <= 0f || shadowHeight <= 0f) {
+            return
+        }
+
+        val shadowSize = Size(shadowWidth, shadowHeight)
+        val shadowOutline = shape.createOutline(shadowSize, layoutDirection, this)
+
+        drawIntoCanvas {
+            it.save()
+            it.translate(offsetXPx, offsetYPx)
+            it.drawOutline(shadowOutline, paint)
+            it.restore()
+        }
+    }
+}
