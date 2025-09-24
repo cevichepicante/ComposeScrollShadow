@@ -1,15 +1,20 @@
 package com.cevichepicante.composescrollshadow
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,12 +28,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 /**
  * Test Composable 1
@@ -53,7 +61,7 @@ fun TextShadowWhenListScrolling() {
                 shape = RoundedCornerShape(8.dp),
                 color = Color.Gray,
                 blurDp = 15.dp,
-                offsetX = 5,
+                offsetX = 0,
                 offsetY = 7
             )
         ) {
@@ -117,9 +125,6 @@ fun LazyColumnLastItemVisibleWithTextField() {
         ShadowIndicatedScaffold(
             hidingShadowIndex = HidingPositionIndex.LAST,
             listState = listState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(55.dp),
             shadowSettings = AdvancedShadowSettings(
                 shape = RectangleShape,
                 color = Color.Gray,
@@ -176,7 +181,6 @@ fun LazyRowWithRightButton() {
     Row(
         modifier = Modifier
             .background(Color.White)
-            .padding(20.dp)
     ) {
         TestLazyRow(
             listState = listState,
@@ -211,7 +215,8 @@ fun TestLazyRow(
     val list = listOf("아우터", "상의", "하의", "신발", "가방", "양말")
     LazyRow(
         modifier = modifier,
-        state = listState
+        state = listState,
+        contentPadding = PaddingValues(start = 20.dp)
     ) {
         items(
             items = list
@@ -228,6 +233,124 @@ fun TestLazyRow(
             )
             Spacer(
                 modifier = Modifier.width(5.dp)
+            )
+        }
+    }
+}
+
+/**
+ * Test Composable 4
+ *
+ * LazyColumn with buttons at the each side vertically
+ * Shadows appear at the top and also bottom
+ */
+@Composable
+fun LazyColumnWithButtonsVertically() {
+    val list = IntRange(1, 50).toList()
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier.width(40.dp)
+    ) {
+        ShadowIndicatedScaffold(
+            hidingShadowIndex = HidingPositionIndex.FIRST,
+            listState = listState,
+            shadowSettings = AdvancedShadowSettings(
+                shape = RectangleShape,
+                color = Color.Gray,
+                blurDp = 15.dp,
+                offsetX = 0,
+                offsetY = 8
+            )
+        ) {
+            ScrollListButton(
+                toUp = true,
+                onClick = {
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(0)
+                    }
+                }
+            )
+        }
+
+        LazyColumnBetweenOfButtons(
+            list = list,
+            listState = listState,
+            modifier = Modifier.weight(1f)
+        )
+
+        ShadowIndicatedScaffold(
+            hidingShadowIndex = HidingPositionIndex.LAST,
+            listState = listState,
+            shadowSettings = AdvancedShadowSettings(
+                shape = RectangleShape,
+                color = Color.Gray,
+                blurDp = 15.dp,
+                offsetX = 0,
+                offsetY = -8
+            )
+        ) {
+            ScrollListButton(
+                toUp = false,
+                onClick = {
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(list.lastIndex)
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun ScrollListButton(
+    toUp: Boolean,
+    onClick: () -> Unit
+) {
+    Text(
+        text = "^",
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .clickable {
+                onClick()
+            }
+            .fillMaxWidth()
+            .background(Color.Yellow)
+            .padding(vertical = 5.dp)
+            .rotate(
+                if(toUp) {
+                    0.0f
+                } else {
+                    180.0f
+                }
+            )
+    )
+}
+
+@Composable
+fun LazyColumnBetweenOfButtons(
+    list: List<Any>,
+    listState: LazyListState,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        state = listState,
+        modifier = modifier
+    ) {
+        items(
+            items = list
+        ) {
+            Text(
+                text = it.toString(),
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp)
+            )
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray
             )
         }
     }
