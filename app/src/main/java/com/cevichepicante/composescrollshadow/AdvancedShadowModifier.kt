@@ -1,10 +1,12 @@
 package com.cevichepicante.composescrollshadow
 
 import android.graphics.BlurMaskFilter
+import android.util.Log
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
@@ -15,6 +17,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 
 data class AdvancedShadowSettings(
@@ -50,6 +53,7 @@ fun Modifier.advancedShadow(
             paint = paint,
             offsetX = offsetX,
             offsetY = offsetY,
+            blurDp = blurDp,
             shape = shape,
             visible = visible
         )
@@ -60,6 +64,7 @@ private data class AdvancedShadowElement(
     val paint: Paint,
     val offsetX: Int,
     val offsetY: Int,
+    val blurDp: Dp,
     val shape: Shape,
     val visible: Boolean
 ): ModifierNodeElement<AdvancedShadowModifierNode>() {
@@ -69,6 +74,7 @@ private data class AdvancedShadowElement(
             offsetX = offsetX,
             offsetY = offsetY,
             shape = shape,
+            blurDp = blurDp,
             visible = visible
         )
     }
@@ -82,6 +88,7 @@ class AdvancedShadowModifierNode(
     private val paint: Paint,
     private val offsetX: Int,
     private val offsetY: Int,
+    private val blurDp: Dp,
     private val shape: Shape,
     var visible: Boolean
 ): Modifier.Node(), DrawModifierNode {
@@ -105,12 +112,49 @@ class AdvancedShadowModifierNode(
 
         val shadowSize = Size(shadowWidth, shadowHeight)
         val shadowOutline = shape.createOutline(shadowSize, layoutDirection, this)
+        val clipRect = getShadowRect(density, size)
 
         drawIntoCanvas {
             it.save()
             it.translate(offsetXPx, offsetYPx)
+            it.clipRect(clipRect)
             it.drawOutline(shadowOutline, paint)
             it.restore()
         }
+    }
+
+    private fun getShadowRect(density: Float, size: Size): Rect {
+        val left: Float
+        val right: Float
+        val top: Float
+        val bottom: Float
+        val blurPx = density.times(blurDp.value)
+
+        offsetX.let {
+            if(it < 0) {
+                left = -(blurPx) * 2
+                right = size.width
+            } else if(it > 0) {
+                left = 0f
+                right = size.width.plus(blurPx * 2)
+            } else {
+                left = 0f
+                right = size.width
+            }
+        }
+        offsetY.let {
+            if(it < 0) {
+                top = -(blurPx) * 2
+                bottom = size.height
+            } else if(it > 0) {
+                top = 0f
+                bottom = size.height.plus(blurPx * 2)
+            } else {
+                top = 0f
+                bottom = size.height
+            }
+        }
+
+        return Rect(left, top, right, bottom)
     }
 }

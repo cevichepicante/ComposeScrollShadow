@@ -18,7 +18,6 @@ fun ShadowIndicatedScaffold(
     hidingShadowIndex: HidingPositionIndex,
     listState: LazyListState,
     shadowSettings: AdvancedShadowSettings,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     val showShadow by remember(
@@ -37,7 +36,8 @@ fun ShadowIndicatedScaffold(
     }
 
     Box(
-        modifier = modifier
+        modifier = Modifier
+            .wrapContentSize()
             .advancedShadow(
                 shape = shadowSettings.shape,
                 color = shadowSettings.color,

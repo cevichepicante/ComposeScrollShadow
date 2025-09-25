@@ -61,7 +61,7 @@ fun TextShadowWhenListScrolling() {
                 shape = RoundedCornerShape(8.dp),
                 color = Color.Gray,
                 blurDp = 15.dp,
-                offsetX = 0,
+                offsetX = 4,
                 offsetY = 7
             )
         ) {
