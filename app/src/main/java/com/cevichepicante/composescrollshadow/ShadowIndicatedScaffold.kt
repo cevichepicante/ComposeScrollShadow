@@ -8,10 +8,22 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
 
 enum class HidingPositionIndex {
     FIRST, LAST,
 }
+
+data class AdvancedShadowSettings(
+    val shape: Shape,
+    val color: Color,
+    val blurDp: Dp,
+    val offsetX: Int,
+    val offsetY: Int,
+    val clipToShape: Boolean
+)
 
 @Composable
 fun ShadowIndicatedScaffold(
@@ -44,6 +56,7 @@ fun ShadowIndicatedScaffold(
                 blurDp = shadowSettings.blurDp,
                 offsetX = shadowSettings.offsetX,
                 offsetY = shadowSettings.offsetY,
+                clipToShape = shadowSettings.clipToShape,
                 visible = showShadow
             )
     ) {

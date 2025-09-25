@@ -20,21 +20,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 
-data class AdvancedShadowSettings(
-    val shape: Shape,
-    val color: Color,
-    val blurDp: Dp,
-    val offsetX: Int,
-    val offsetY: Int
-)
-
 @Composable
-fun Modifier.advancedShadow(
+internal fun Modifier.advancedShadow(
     shape: Shape,
     color: Color,
     blurDp: Dp,
     offsetX: Int,
     offsetY: Int,
+    clipToShape: Boolean,
     visible: Boolean
 ): Modifier {
     val density = LocalDensity.current
@@ -55,6 +48,7 @@ fun Modifier.advancedShadow(
             offsetY = offsetY,
             blurDp = blurDp,
             shape = shape,
+            clipToShape = clipToShape,
             visible = visible
         )
     )
@@ -62,19 +56,21 @@ fun Modifier.advancedShadow(
 
 private data class AdvancedShadowElement(
     val paint: Paint,
+    val shape: Shape,
+    val blurDp: Dp,
     val offsetX: Int,
     val offsetY: Int,
-    val blurDp: Dp,
-    val shape: Shape,
+    val clipToShape: Boolean,
     val visible: Boolean
 ): ModifierNodeElement<AdvancedShadowModifierNode>() {
     override fun create(): AdvancedShadowModifierNode {
         return AdvancedShadowModifierNode(
             paint = paint,
-            offsetX = offsetX,
-            offsetY = offsetY,
             shape = shape,
             blurDp = blurDp,
+            offsetX = offsetX,
+            offsetY = offsetY,
+            clipToShape = clipToShape,
             visible = visible
         )
     }
@@ -84,12 +80,13 @@ private data class AdvancedShadowElement(
     }
 }
 
-class AdvancedShadowModifierNode(
+private class AdvancedShadowModifierNode(
     private val paint: Paint,
+    private val shape: Shape,
+    private val blurDp: Dp,
     private val offsetX: Int,
     private val offsetY: Int,
-    private val blurDp: Dp,
-    private val shape: Shape,
+    private val clipToShape: Boolean,
     var visible: Boolean
 ): Modifier.Node(), DrawModifierNode {
 
@@ -112,12 +109,13 @@ class AdvancedShadowModifierNode(
 
         val shadowSize = Size(shadowWidth, shadowHeight)
         val shadowOutline = shape.createOutline(shadowSize, layoutDirection, this)
-        val clipRect = getShadowRect(density, size)
 
         drawIntoCanvas {
             it.save()
             it.translate(offsetXPx, offsetYPx)
-            it.clipRect(clipRect)
+            if(clipToShape) {
+                it.clipRect(getShadowRect(density, size))
+            }
             it.drawOutline(shadowOutline, paint)
             it.restore()
         }

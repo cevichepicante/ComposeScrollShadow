@@ -62,7 +62,8 @@ fun TextShadowWhenListScrolling() {
                 color = Color.Gray,
                 blurDp = 15.dp,
                 offsetX = 4,
-                offsetY = 7
+                offsetY = 7,
+                clipToShape = false
             )
         ) {
             ShadowSetText()
@@ -130,7 +131,8 @@ fun LazyColumnLastItemVisibleWithTextField() {
                 color = Color.Gray,
                 blurDp = 10.dp,
                 offsetX = 0,
-                offsetY = -8
+                offsetY = -8,
+                clipToShape = true
             )
         ) {
             TextField(
@@ -175,6 +177,12 @@ fun LazyColumnLastItemVisible(
     }
 }
 
+/**
+ *  Test Composable 3
+ *
+ *  최우측 버튼, 그 좌측으로 나머지 영역에 LazyRow
+ *  LazyRow 스크롤 상태인 경우 버튼과 목록 경계에 shadow 표시
+ */
 @Composable
 fun LazyRowWithRightButton() {
     val listState = rememberLazyListState()
@@ -194,7 +202,8 @@ fun LazyRowWithRightButton() {
                 color = Color.Gray,
                 blurDp = 15.dp,
                 offsetX = -8,
-                offsetY = 0
+                offsetY = 0,
+                clipToShape = true
             ),
         ) {
             Text(
@@ -261,7 +270,8 @@ fun LazyColumnWithButtonsVertically() {
                 color = Color.Gray,
                 blurDp = 15.dp,
                 offsetX = 0,
-                offsetY = 8
+                offsetY = 8,
+                clipToShape = true
             )
         ) {
             ScrollListButton(
@@ -288,7 +298,8 @@ fun LazyColumnWithButtonsVertically() {
                 color = Color.Gray,
                 blurDp = 15.dp,
                 offsetX = 0,
-                offsetY = -8
+                offsetY = -8,
+                clipToShape = true
             )
         ) {
             ScrollListButton(
