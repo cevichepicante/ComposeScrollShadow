@@ -1,7 +1,6 @@
 package com.cevichepicante.composescrollshadow
 
 import android.util.Log
-import androidx.annotation.FloatRange
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
@@ -9,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -17,9 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 
 data class PassingListInfo(
     val orientation: Orientation,
@@ -34,6 +32,9 @@ fun ShadowIndicatedFloatingScaffold(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
+    val listItemsCount by remember(listState) {
+        mutableIntStateOf(listState.layoutInfo.totalItemsCount)
+    }
     var floatingContentRect by remember {
         mutableStateOf<Rect?>(null)
     }
@@ -54,30 +55,30 @@ fun ShadowIndicatedFloatingScaffold(
     ) {
         val listRect = passingListInfo.listRect
         if(listRect != null && floatingContentRect != null) {
-//        list (470.0, 84.0, 611.0, 2205.0)
-//        content (728.0, 1111.0, 916.0, 1179.0)
-            val listHorizontalRange = listRect.left.toDouble().rangeTo(listRect.right.toDouble())
-            val listVerticalRange = listRect.top.toDouble().rangeTo(listRect.bottom.toDouble())
+            val contentOnHorizontalAxis = floatingContentRect!!.isInRange(
+                listRect,
+                OffsetRangeOrientation.Horizontal
+            )
+            val contentOnVerticalAxis = floatingContentRect!!.isInRange(
+                listRect,
+                OffsetRangeOrientation.Vertical
+            )
 
-            val onHorizontalAxis = floatingContentRect!!.left in listHorizontalRange || floatingContentRect!!.right in listHorizontalRange
-            val onVerticalAxis = floatingContentRect!!.top in listVerticalRange || floatingContentRect!!.bottom in listVerticalRange
-            Log.d("JSY", "contentOnAxis? hor: $onHorizontalAxis ver: $onVerticalAxis")
-
-            if(onHorizontalAxis && onVerticalAxis) {
+            if(contentOnHorizontalAxis && contentOnVerticalAxis) {
                 alignedOnAxis = true
             } else {
-                //  content 너비 및 높이가 list 보다 클 수 경우 고려
-                floatingContentRect?.let {
-                    val horizontalRange = it.left.toDouble().rangeTo(it.right.toDouble())
-                    val verticalRange = it.top.toDouble().rangeTo(it.bottom.toDouble())
-                    val listOnHorizontalAxis = listRect.left in horizontalRange || listRect.right in horizontalRange
-                    val listOnVerticalAxis = listRect.top in verticalRange || listRect.bottom in verticalRange
+                floatingContentRect!!.let {
+                    val listOnHorizontalAxis = listRect.isInRange(
+                        it,
+                        OffsetRangeOrientation.Horizontal
+                    )
+                    val listOnVerticalAxis = listRect.isInRange(
+                        it,
+                        OffsetRangeOrientation.Vertical
+                    )
 
-                    Log.d("JSY", "listOnAxis? hor: $listOnHorizontalAxis ver: $listOnVerticalAxis")
                     alignedOnAxis = listOnHorizontalAxis || listOnVerticalAxis
-                    return@LaunchedEffect
                 }
-                alignedOnAxis = false
             }
         } else {
             alignedOnAxis = false
@@ -90,9 +91,9 @@ fun ShadowIndicatedFloatingScaffold(
     if(alignedOnAxis) {
         LaunchedEffect(
             key1 = listState,
-            key2 = floatingContentRect
+            key2 = floatingContentRect,
+            key3 = listItemsCount
         ) {
-            Log.d("JSY", "Aligned on axis")
             snapshotFlow {
                 listState.firstVisibleItemScrollOffset
             }.map {
@@ -100,51 +101,46 @@ fun ShadowIndicatedFloatingScaffold(
                     LazyList 에 contentPadding 이 있는 경우
                     first visible item offset 계산 시 포함
                  */
-                val visibleList = listState.layoutInfo.visibleItemsInfo
-                visibleList.firstOrNull()?.let { firstVisible ->
+                val firstVisible = listState.layoutInfo.visibleItemsInfo.firstOrNull()
+                if(firstVisible != null) {
                     val topPaddingPx = listState.layoutInfo.beforeContentPadding
                     val offset = if(topPaddingPx > 0) {
-                        firstVisible.offset.plus(topPaddingPx).let {
-                            if (it < 0) {
-                                0
-                            } else {
-                                it
-                            }
-                        }
+                        firstVisible.offset.plus(topPaddingPx).coerceAtLeast(0)
                     } else {
                         firstVisible.offset
                     }
-                    return@map offset
+                    Pair(firstVisible.index, offset)
+                } else {
+                    null
                 }
-                null
-            }.collect { offset ->
+            }.collect { pair ->
 
-                if(offset == null) {
+                if(pair == null) {
                     overLayered = false
                     return@collect
                 }
 
-                floatingContentRect?.let {
-                    val inVerticalRange = (offset > it.top) && (offset < it.bottom)
+                val offset = pair.second
+                val index = pair.first
 
-                    if(inVerticalRange) {
+                floatingContentRect?.let {
+                    val verticalRange = it.getOffsetRange(OffsetRangeOrientation.Vertical)
+                    if(offset.toDouble() in verticalRange) {
                         overLayered = true
                     } else {
-                        //  list 의 first visible item 이 타겟 composable 보다 앞에 있는지 확인
                         val isListAhead = offset < it.top
                         if(isListAhead) {
-                            val itemSize = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size?: 0
-                            val firstVisibleIndex = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index?: 0
-                            val backwardItemCount = listState.layoutInfo.totalItemsCount.minus(firstVisibleIndex.plus(1))
-                            val distanceFirstOffsetToContent = it.top.minus(offset)
-                            val listIsStillLong = (backwardItemCount * itemSize) > distanceFirstOffsetToContent
+                            val itemHeight = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size?: 0
+                            val backwardItemCount = listItemsCount.minus(index.plus(1))
+                            val gap = it.top.minus(offset)
+                            val listIsStillLong = (backwardItemCount * itemHeight) > gap
 
                             Log.d(
                                 "JSY",
-                                "(distance: $distanceFirstOffsetToContent) " +
-                                        "(items: ${backwardItemCount.times(itemSize)} = $itemSize * ${backwardItemCount}개)"
+                                "(distance: $gap) " +
+                                        "(items: ${backwardItemCount.times(itemHeight)} " +
+                                        "= $itemHeight * ${backwardItemCount}개)"
                             )
-
                             overLayered = listIsStillLong
                         } else {
                             overLayered = false
@@ -173,5 +169,33 @@ fun ShadowIndicatedFloatingScaffold(
             )
     ) {
         content()
+    }
+}
+
+enum class OffsetRangeOrientation {
+    Horizontal, Vertical
+}
+
+private fun Rect.isInRange(rect: Rect, orientation: OffsetRangeOrientation): Boolean {
+    val horizontalRange = rect.getOffsetRange(OffsetRangeOrientation.Horizontal)
+    val verticalRange = rect.getOffsetRange(OffsetRangeOrientation.Vertical)
+    return when(orientation) {
+        OffsetRangeOrientation.Horizontal -> {
+            left in horizontalRange || right in horizontalRange
+        }
+        OffsetRangeOrientation.Vertical -> {
+            top in verticalRange || bottom in verticalRange
+        }
+    }
+}
+
+private fun Rect.getOffsetRange(orientation: OffsetRangeOrientation): ClosedFloatingPointRange<Double> {
+    return when(orientation) {
+        OffsetRangeOrientation.Horizontal -> {
+            left.toDouble().rangeTo(right.toDouble())
+        }
+        OffsetRangeOrientation.Vertical -> {
+            top.toDouble().rangeTo(bottom.toDouble())
+        }
     }
 }
