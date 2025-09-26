@@ -17,6 +17,15 @@ import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 
+data class AdvancedShadowSettings(
+    val shape: Shape,
+    val color: Color,
+    val blurDp: Dp,
+    val offsetX: Int,
+    val offsetY: Int,
+    val clipToShape: Boolean
+)
+
 @Composable
 internal fun Modifier.advancedShadow(
     shape: Shape,

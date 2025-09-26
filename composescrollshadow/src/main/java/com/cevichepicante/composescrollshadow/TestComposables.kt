@@ -50,7 +50,7 @@ fun TextShadowWhenListScrolling() {
     ) {
         val listState = rememberLazyListState()
         TestBackgroundList(listState)
-        com.cevichepicante.composescrollshadow.ShadowIndicatedScaffold(
+        com.cevichepicante.composescrollshadow.ShadowIndicatedScrollScaffold(
             hidingShadowIndex = com.cevichepicante.composescrollshadow.HidingPositionIndex.FIRST,
             listState = listState,
             shadowSettings = com.cevichepicante.composescrollshadow.AdvancedShadowSettings(
@@ -76,19 +76,28 @@ fun ShadowSetText() {
                 color = Color.Yellow,
                 shape = RoundedCornerShape(8.dp)
             )
-            .padding(horizontal = 15.dp)
+            .padding(horizontal = 50.dp)
     )
 }
 
 @Composable
-fun TestBackgroundList(listState: LazyListState) {
+fun TestBackgroundList(
+    listState: LazyListState,
+    modifier: Modifier = Modifier
+) {
     val list = IntRange(1, 50).toList()
     LazyColumn(
-        state = listState
+        modifier = modifier,
+        state = listState,
+        contentPadding = PaddingValues(top = 500.dp)
     ) {
         items(
             items = list
         ) {
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray
+            )
             Text(
                 text = it.toString(),
                 textAlign = TextAlign.Center,
@@ -119,7 +128,7 @@ fun LazyColumnLastItemVisibleWithTextField() {
             listState = listState,
             modifier = Modifier.weight(1f)
         )
-        com.cevichepicante.composescrollshadow.ShadowIndicatedScaffold(
+        com.cevichepicante.composescrollshadow.ShadowIndicatedScrollScaffold(
             hidingShadowIndex = com.cevichepicante.composescrollshadow.HidingPositionIndex.LAST,
             listState = listState,
             shadowSettings = com.cevichepicante.composescrollshadow.AdvancedShadowSettings(
@@ -190,7 +199,7 @@ fun LazyRowWithRightButton() {
             listState = listState,
             modifier = Modifier.weight(1f)
         )
-        com.cevichepicante.composescrollshadow.ShadowIndicatedScaffold(
+        com.cevichepicante.composescrollshadow.ShadowIndicatedScrollScaffold(
             hidingShadowIndex = com.cevichepicante.composescrollshadow.HidingPositionIndex.LAST,
             listState = listState,
             shadowSettings = com.cevichepicante.composescrollshadow.AdvancedShadowSettings(
@@ -221,7 +230,7 @@ fun TestLazyRow(
     LazyRow(
         modifier = modifier,
         state = listState,
-        contentPadding = PaddingValues(start = 20.dp)
+        contentPadding = PaddingValues(horizontal = 300.dp)
     ) {
         items(
             items = list
@@ -258,7 +267,7 @@ fun LazyColumnWithButtonsVertically() {
     Column(
         modifier = Modifier.width(40.dp)
     ) {
-        com.cevichepicante.composescrollshadow.ShadowIndicatedScaffold(
+        com.cevichepicante.composescrollshadow.ShadowIndicatedScrollScaffold(
             hidingShadowIndex = com.cevichepicante.composescrollshadow.HidingPositionIndex.FIRST,
             listState = listState,
             shadowSettings = com.cevichepicante.composescrollshadow.AdvancedShadowSettings(
@@ -286,7 +295,7 @@ fun LazyColumnWithButtonsVertically() {
             modifier = Modifier.weight(1f)
         )
 
-        com.cevichepicante.composescrollshadow.ShadowIndicatedScaffold(
+        com.cevichepicante.composescrollshadow.ShadowIndicatedScrollScaffold(
             hidingShadowIndex = com.cevichepicante.composescrollshadow.HidingPositionIndex.LAST,
             listState = listState,
             shadowSettings = com.cevichepicante.composescrollshadow.AdvancedShadowSettings(
