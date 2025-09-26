@@ -50,16 +50,14 @@ fun TextShadowWhenListScrolling() {
     ) {
         val listState = rememberLazyListState()
         TestBackgroundList(listState)
-        com.cevichepicante.composescrollshadow.ShadowIndicatedScrollScaffold(
-            hidingShadowIndex = com.cevichepicante.composescrollshadow.HidingShadowPosition.FIRST,
+        ShadowIndicatedScrollScaffold(
+            hidingShadowIndex = HidingShadowPosition.FIRST,
             listState = listState,
-            shadowSettings = com.cevichepicante.composescrollshadow.AdvancedShadowSettings(
+            shadowSettings = AdvancedShadowSettings(
                 shape = RoundedCornerShape(8.dp),
                 color = Color.Gray,
                 blurDp = 15.dp,
-                offsetX = 4,
-                offsetY = 7,
-                clipToShape = false
+                clipType = ShadowClipType.None
             )
         ) {
             ShadowSetText()
@@ -128,16 +126,14 @@ fun LazyColumnLastItemVisibleWithTextField() {
             listState = listState,
             modifier = Modifier.weight(1f)
         )
-        com.cevichepicante.composescrollshadow.ShadowIndicatedScrollScaffold(
-            hidingShadowIndex = com.cevichepicante.composescrollshadow.HidingShadowPosition.LAST,
+        ShadowIndicatedScrollScaffold(
+            hidingShadowIndex = HidingShadowPosition.LAST,
             listState = listState,
-            shadowSettings = com.cevichepicante.composescrollshadow.AdvancedShadowSettings(
+            shadowSettings = AdvancedShadowSettings(
                 shape = RectangleShape,
                 color = Color.Gray,
                 blurDp = 10.dp,
-                offsetX = 0,
-                offsetY = -8,
-                clipToShape = true
+                ShadowClipType.ClipToShape(0, -10)
             )
         ) {
             TextField(
@@ -199,16 +195,14 @@ fun LazyRowWithRightButton() {
             listState = listState,
             modifier = Modifier.weight(1f)
         )
-        com.cevichepicante.composescrollshadow.ShadowIndicatedScrollScaffold(
-            hidingShadowIndex = com.cevichepicante.composescrollshadow.HidingShadowPosition.LAST,
+        ShadowIndicatedScrollScaffold(
+            hidingShadowIndex = HidingShadowPosition.LAST,
             listState = listState,
-            shadowSettings = com.cevichepicante.composescrollshadow.AdvancedShadowSettings(
+            shadowSettings = AdvancedShadowSettings(
                 shape = RectangleShape,
                 color = Color.Gray,
                 blurDp = 15.dp,
-                offsetX = -8,
-                offsetY = 0,
-                clipToShape = true
+                clipType = ShadowClipType.ClipToShape(-8 , 0)
             ),
         ) {
             Text(
@@ -267,16 +261,14 @@ fun LazyColumnWithButtonsVertically() {
     Column(
         modifier = Modifier.width(40.dp)
     ) {
-        com.cevichepicante.composescrollshadow.ShadowIndicatedScrollScaffold(
-            hidingShadowIndex = com.cevichepicante.composescrollshadow.HidingShadowPosition.FIRST,
+        ShadowIndicatedScrollScaffold(
+            hidingShadowIndex = HidingShadowPosition.FIRST,
             listState = listState,
-            shadowSettings = com.cevichepicante.composescrollshadow.AdvancedShadowSettings(
+            shadowSettings = AdvancedShadowSettings(
                 shape = RectangleShape,
                 color = Color.Gray,
                 blurDp = 15.dp,
-                offsetX = 0,
-                offsetY = 8,
-                clipToShape = true
+                clipType = ShadowClipType.ClipToShape(0, 8)
             )
         ) {
             ScrollListButton(
@@ -295,16 +287,14 @@ fun LazyColumnWithButtonsVertically() {
             modifier = Modifier.weight(1f)
         )
 
-        com.cevichepicante.composescrollshadow.ShadowIndicatedScrollScaffold(
-            hidingShadowIndex = com.cevichepicante.composescrollshadow.HidingShadowPosition.LAST,
+        ShadowIndicatedScrollScaffold(
+            hidingShadowIndex = HidingShadowPosition.LAST,
             listState = listState,
-            shadowSettings = com.cevichepicante.composescrollshadow.AdvancedShadowSettings(
+            shadowSettings = AdvancedShadowSettings(
                 shape = RectangleShape,
                 color = Color.Gray,
                 blurDp = 15.dp,
-                offsetX = 0,
-                offsetY = -8,
-                clipToShape = true
+                clipType = ShadowClipType.ClipToShape(0, -8)
             )
         ) {
             ScrollListButton(

@@ -202,9 +202,7 @@ fun ShadowIndicatedFloatingScaffold(
                 shape = shadowSettings.shape,
                 color = shadowSettings.color,
                 blurDp = shadowSettings.blurDp,
-                offsetX = shadowSettings.offsetX,
-                offsetY = shadowSettings.offsetY,
-                clipToShape = shadowSettings.clipToShape,
+                clipType = shadowSettings.clipType,
                 visible = overLayered
             )
     ) {
