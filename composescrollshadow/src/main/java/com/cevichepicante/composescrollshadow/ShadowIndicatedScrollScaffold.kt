@@ -9,13 +9,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 
-enum class HidingPositionIndex {
+enum class HidingShadowPosition {
     FIRST, LAST,
 }
 
+/**
+ * This scaffold adds [content] shadow layer depends on list's scrolling state.
+ *
+ * @param hidingShadowIndex is the part of LazyList where the list reached to make shadow invisible
+ * @param shadowSettings for style of shadow layer
+ * @param content Composable which will be drew with shadow
+ *
+ */
 @Composable
 fun ShadowIndicatedScrollScaffold(
-    hidingShadowIndex: HidingPositionIndex,
+    hidingShadowIndex: HidingShadowPosition,
     listState: LazyListState,
     shadowSettings: AdvancedShadowSettings,
     content: @Composable () -> Unit
@@ -26,9 +34,9 @@ fun ShadowIndicatedScrollScaffold(
     ) {
         derivedStateOf {
             when(hidingShadowIndex) {
-                HidingPositionIndex.FIRST -> {
+                HidingShadowPosition.FIRST -> {
                     listState.firstVisibleItemScrollOffset != 0
-                } HidingPositionIndex.LAST -> {
+                } HidingShadowPosition.LAST -> {
                     listState.canScrollForward
                 }
             }
