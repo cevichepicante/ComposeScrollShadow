@@ -76,7 +76,7 @@ fun ShadowSetText() {
                 color = Color.Yellow,
                 shape = RoundedCornerShape(8.dp)
             )
-            .padding(horizontal = 50.dp)
+            .padding(20.dp)
     )
 }
 

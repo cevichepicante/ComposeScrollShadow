@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,11 +20,16 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import kotlinx.coroutines.flow.map
 
+enum class OffsetRangeOrientation {
+    Horizontal, Vertical
+}
+
 data class PassingListInfo(
     val orientation: Orientation,
     val listRect: Rect?
 )
 
+//  list 높이 및 너비 딱 맞게 설정 필요 정확한 계산을 위해.
 @Composable
 fun ShadowIndicatedFloatingScaffold(
     listState: LazyListState,
@@ -32,9 +38,7 @@ fun ShadowIndicatedFloatingScaffold(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val listItemsCount by remember(listState) {
-        mutableIntStateOf(listState.layoutInfo.totalItemsCount)
-    }
+    val isVerticalList = passingListInfo.orientation == Orientation.Vertical
     var floatingContentRect by remember {
         mutableStateOf<Rect?>(null)
     }
@@ -92,7 +96,6 @@ fun ShadowIndicatedFloatingScaffold(
         LaunchedEffect(
             key1 = listState,
             key2 = floatingContentRect,
-            key3 = listItemsCount
         ) {
             snapshotFlow {
                 listState.firstVisibleItemScrollOffset
@@ -103,9 +106,9 @@ fun ShadowIndicatedFloatingScaffold(
                  */
                 val firstVisible = listState.layoutInfo.visibleItemsInfo.firstOrNull()
                 if(firstVisible != null) {
-                    val topPaddingPx = listState.layoutInfo.beforeContentPadding
-                    val offset = if(topPaddingPx > 0) {
-                        firstVisible.offset.plus(topPaddingPx).coerceAtLeast(0)
+                    val headPaddingPx = listState.layoutInfo.beforeContentPadding
+                    val offset = if(headPaddingPx > 0) {
+                        firstVisible.offset.plus(headPaddingPx).coerceAtLeast(0)
                     } else {
                         firstVisible.offset
                     }
@@ -114,32 +117,52 @@ fun ShadowIndicatedFloatingScaffold(
                     null
                 }
             }.collect { pair ->
-
                 if(pair == null) {
                     overLayered = false
                     return@collect
                 }
 
-                val offset = pair.second
                 val index = pair.first
+                val offset = pair.second
 
                 floatingContentRect?.let {
-                    val verticalRange = it.getOffsetRange(OffsetRangeOrientation.Vertical)
+                    val verticalRange = it.getOffsetRange(
+                        if(isVerticalList) {
+                            OffsetRangeOrientation.Vertical
+                        } else {
+                            OffsetRangeOrientation.Horizontal
+                        }
+                    )
                     if(offset.toDouble() in verticalRange) {
                         overLayered = true
                     } else {
-                        val isListAhead = offset < it.top
+                        val isListAhead = if(isVerticalList) {
+                            offset < it.top
+                        } else {
+                            offset < it.left
+                        }
                         if(isListAhead) {
-                            val itemHeight = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size?: 0
-                            val backwardItemCount = listItemsCount.minus(index.plus(1))
-                            val gap = it.top.minus(offset)
-                            val listIsStillLong = (backwardItemCount * itemHeight) > gap
+                            /**
+                             * LazyListItemInfo itemSize is ..
+                             *
+                             * for LazyRow, width of item
+                             * for LazyColumn, height of item
+                             */
+                            val itemSize = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size?: 0
+                            val totalItemCount = listState.layoutInfo.totalItemsCount
+                            val backwardItemCount = totalItemCount.minus(index.plus(1))
+                            val gap = if(isVerticalList) {
+                                it.top.minus(offset)
+                            } else {
+                                it.left.minus(offset)
+                            }
+                            val listIsStillLong = (backwardItemCount * itemSize) > gap
 
                             Log.d(
                                 "JSY",
                                 "(distance: $gap) " +
-                                        "(items: ${backwardItemCount.times(itemHeight)} " +
-                                        "= $itemHeight * ${backwardItemCount}개)"
+                                        "(items: ${backwardItemCount.times(itemSize)} " +
+                                        "= $itemSize * ${backwardItemCount}개)"
                             )
                             overLayered = listIsStillLong
                         } else {
@@ -170,10 +193,6 @@ fun ShadowIndicatedFloatingScaffold(
     ) {
         content()
     }
-}
-
-enum class OffsetRangeOrientation {
-    Horizontal, Vertical
 }
 
 private fun Rect.isInRange(rect: Rect, orientation: OffsetRangeOrientation): Boolean {

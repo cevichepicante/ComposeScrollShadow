@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
@@ -51,15 +52,15 @@ class MainActivity : ComponentActivity() {
                         }
                         val passingListInfo by remember(listRect) {
                             mutableStateOf(
-                                PassingListInfo(Orientation.Vertical, listRect)
+                                PassingListInfo(Orientation.Horizontal, listRect)
                             )
                         }
                         val listState = rememberLazyListState()
 
-                        TestBackgroundList(
+                        TestLazyRow(
                             listState = listState,
                             modifier = Modifier
-                                .width(50.dp)
+                                .wrapContentHeight()
                                 .onGloballyPositioned {
                                     listRect = it.parentCoordinates?.boundsInRoot()
                                 }
@@ -67,6 +68,7 @@ class MainActivity : ComponentActivity() {
                         ShadowIndicatedFloatingScaffold(
                             listState = listState,
                             passingListInfo = passingListInfo,
+                            modifier = Modifier.padding(top = 50.dp),
                             shadowSettings = AdvancedShadowSettings(
                                 shape = RectangleShape,
                                 color = Color.Gray,
