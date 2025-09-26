@@ -20,16 +20,40 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import kotlinx.coroutines.flow.map
 
-enum class OffsetRangeOrientation {
+private enum class OffsetRangeOrientation {
     Horizontal, Vertical
 }
 
 data class PassingListInfo(
+    /**
+     * [Orientation.Vertical] for LazyColumn,
+     * [Orientation.Horizontal] for LazyRow
+     */
     val orientation: Orientation,
+
+    /**
+     * Bound of LazyList composable
+     *
+     * To get Rect of LazyList, there is one of many options below.
+     * ```
+     * Modifier
+     * .width(100.dp)
+     * .onGloballyPositioned {
+     *      it.parentCoordinates?.boundsInRoot() // Here!
+     * }
+     * ```
+     */
     val listRect: Rect?
 )
 
-//  list 높이 및 너비 딱 맞게 설정 필요 정확한 계산을 위해.
+/**
+ * This scaffold adds [content] shadow layer when [content] is over-layered on LazyList.
+ *
+ * @param passingListInfo has orientation and Rect info of LazyList
+ * @param shadowSettings for style of shadow layer
+ * @param content Composable which will be drew with shadow
+ *
+ */
 @Composable
 fun ShadowIndicatedFloatingScaffold(
     listState: LazyListState,
@@ -39,19 +63,17 @@ fun ShadowIndicatedFloatingScaffold(
     content: @Composable () -> Unit
 ) {
     val isVerticalList = passingListInfo.orientation == Orientation.Vertical
-    var floatingContentRect by remember {
-        mutableStateOf<Rect?>(null)
-    }
-    var overLayered by remember {
-        mutableStateOf(false)
-    }
-    var alignedOnAxis by remember {
-        mutableStateOf(false)
-    }
 
-    /*
-        LazyList 와 floating composable 이
-        서로 겹칠 수 있는 축에 있는지 확인
+    var floatingContentRect by remember { mutableStateOf<Rect?>(null) }
+    var overLayered by remember { mutableStateOf(false) }
+    var alignedOnAxis by remember { mutableStateOf(false) }
+
+    /**
+     * Checks if [content] and LazyList which [listState] manages are aligned on
+     * same axis horizontally and vertically.
+     * If they are not on the same axis and never over-layered each other,
+     * calculation of offsets of those two [Composable]s doesn't need to be executed.
+     *
      */
     LaunchedEffect(
         key1 = passingListInfo,
@@ -89,10 +111,13 @@ fun ShadowIndicatedFloatingScaffold(
         }
     }
 
-    /*
-        겹쳐진 상태 계산하여 shadow visibility 갱신
-     */
     if(alignedOnAxis) {
+
+        /**
+         * Calculates offset of LazyList when LazyList is scrolled, then check relation of offset
+         * between LazyList and [content] to update shadow's visibility
+         *
+         */
         LaunchedEffect(
             key1 = listState,
             key2 = floatingContentRect,
@@ -100,9 +125,10 @@ fun ShadowIndicatedFloatingScaffold(
             snapshotFlow {
                 listState.firstVisibleItemScrollOffset
             }.map {
-                /*
-                    LazyList 에 contentPadding 이 있는 경우
-                    first visible item offset 계산 시 포함
+                /**
+                 * If LazyList has content padding, offset of first visible item is not accurate.
+                 * Therefore, the offset is emitted as value with before padding value added to it.
+                 *
                  */
                 val firstVisible = listState.layoutInfo.visibleItemsInfo.firstOrNull()
                 if(firstVisible != null) {
@@ -142,11 +168,9 @@ fun ShadowIndicatedFloatingScaffold(
                             offset < it.left
                         }
                         if(isListAhead) {
-                            /**
-                             * LazyListItemInfo itemSize is ..
-                             *
-                             * for LazyRow, width of item
-                             * for LazyColumn, height of item
+                            /*
+                                The itemSize is
+                                for LazyColumn the height of item, for LazyRow the width of item.
                              */
                             val itemSize = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size?: 0
                             val totalItemCount = listState.layoutInfo.totalItemsCount
@@ -158,12 +182,6 @@ fun ShadowIndicatedFloatingScaffold(
                             }
                             val listIsStillLong = (backwardItemCount * itemSize) > gap
 
-                            Log.d(
-                                "JSY",
-                                "(distance: $gap) " +
-                                        "(items: ${backwardItemCount.times(itemSize)} " +
-                                        "= $itemSize * ${backwardItemCount}개)"
-                            )
                             overLayered = listIsStillLong
                         } else {
                             overLayered = false
@@ -178,7 +196,6 @@ fun ShadowIndicatedFloatingScaffold(
         modifier = modifier
             .wrapContentSize()
             .onGloballyPositioned {
-                //  자신의 offset 확인
                 floatingContentRect = it.parentCoordinates?.boundsInRoot()
             }
             .advancedShadow(
