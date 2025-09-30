@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import com.cevichepicante.composescrollshadow.data.ShadowSettingData
 import kotlinx.coroutines.flow.map
 
 private enum class OffsetRangeOrientation {
@@ -58,7 +59,7 @@ data class PassingListInfo(
 fun ShadowIndicatedFloatingScaffold(
     listState: LazyListState,
     passingListInfo: PassingListInfo,
-    shadowSettings: AdvancedShadowSettings,
+    shadowSettings: ShadowSettingData,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
@@ -202,7 +203,7 @@ fun ShadowIndicatedFloatingScaffold(
                 shape = shadowSettings.shape,
                 color = shadowSettings.color,
                 blurDp = shadowSettings.blurDp,
-                clipType = shadowSettings.clipType,
+                sideType = shadowSettings.sideType,
                 visible = overLayered
             )
     ) {

@@ -2,10 +2,11 @@ package com.cevichepicante.composescrollshadow
 
 import android.graphics.BlurMaskFilter
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Shape
@@ -14,73 +15,42 @@ import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-
-/**
- * @param blurDp how much the shadow will be spread
-
- */
-
-sealed class ShadowClipType {
-    data object None: ShadowClipType()
-
-    data class ClipToShape(
-        val offsetX: Int,
-        val offsetY: Int
-    ): ShadowClipType()
-}
-
-data class AdvancedShadowSettings(
-    val shape: Shape,
-    val color: Color,
-    val blurDp: Dp,
-    val clipType: ShadowClipType
-)
+import com.cevichepicante.composescrollshadow.data.ShadowSideDirection
+import com.cevichepicante.composescrollshadow.data.ShadowSideType
 
 @Composable
 internal fun Modifier.advancedShadow(
     shape: Shape,
     color: Color,
     blurDp: Dp,
-    clipType: ShadowClipType,
+    sideType: ShadowSideType,
     visible: Boolean
 ): Modifier {
-    val density = LocalDensity.current
-    val paint = remember(blurDp, color) {
-        Paint().apply {
-            this.color = color
-            val blurPx = with(density) { blurDp.toPx() }
-            if(blurPx > 0f) {
-                asFrameworkPaint().maskFilter = BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
-            }
-        }
-    }
-
     return this.then(
         AdvancedShadowElement(
-            paint = paint,
-            blurDp = blurDp,
             shape = shape,
-            clipType = clipType,
+            color = color,
+            blurDp = blurDp,
+            sideType = sideType,
             visible = visible
         )
     )
 }
 
 private data class AdvancedShadowElement(
-    val paint: Paint,
     val shape: Shape,
+    val color: Color,
     val blurDp: Dp,
-    val clipType: ShadowClipType,
+    val sideType: ShadowSideType,
     val visible: Boolean
 ): ModifierNodeElement<AdvancedShadowModifierNode>() {
     override fun create(): AdvancedShadowModifierNode {
         return AdvancedShadowModifierNode(
-            paint = paint,
             shape = shape,
+            color = color,
             blurDp = blurDp,
-            clipType = clipType,
+            sideType = sideType,
             visible = visible
         )
     }
@@ -91,21 +61,117 @@ private data class AdvancedShadowElement(
 }
 
 private class AdvancedShadowModifierNode(
-    private val paint: Paint,
     private val shape: Shape,
+    private val color: Color,
     private val blurDp: Dp,
-    private val clipType: ShadowClipType,
+    private val sideType: ShadowSideType,
     var visible: Boolean
 ): Modifier.Node(), DrawModifierNode {
 
     override fun ContentDrawScope.draw() {
         if(visible) {
-            drawShadow()
+            if(sideType is ShadowSideType.SingleSide) {
+                drawGradient(sideType)
+            } else if(sideType is ShadowSideType.AllSide) {
+                drawBlurMask(sideType)
+            }
         }
         drawContent()
     }
 
-    private fun ContentDrawScope.drawShadow() {
+    private fun ContentDrawScope.drawGradient(sideStyle: ShadowSideType.SingleSide) {
+        val sideDirection = sideStyle.direction
+        val blurPx = blurDp.toPx()
+
+        var topLeft = Offset.Zero
+        val width: Float
+        val height: Float
+
+        if(sideStyle.drawInner) {
+            width = size.width
+            height = size.height
+        } else {
+            width = size.width.let {
+                when(sideDirection) {
+                    ShadowSideDirection.Left,
+                    ShadowSideDirection.Right -> {
+                        it.plus(blurPx)
+                    }
+                    else -> it
+                }
+            }
+            height = size.height.let {
+                when(sideDirection) {
+                    ShadowSideDirection.Top,
+                    ShadowSideDirection.Bottom -> {
+                        it.plus(blurPx)
+                    }
+                    else -> it
+                }
+            }
+        }
+
+        val gradientBrush = when(sideDirection) {
+            ShadowSideDirection.Left -> {
+                val endOffsetX = if(sideStyle.drawInner) {
+                    blurPx
+                } else {
+                    topLeft = Offset(-(blurPx), 0f)
+                    -(blurPx)
+                }
+                Brush.linearGradient(
+                    colors = listOf(color, Color.Transparent),
+                    start = Offset(0f, size.height),
+                    end = Offset(endOffsetX, size.height)
+                )
+            }
+            ShadowSideDirection.Right -> {
+                val endOffsetX = if(sideStyle.drawInner) {
+                    size.width.minus(blurPx)
+                } else {
+                    size.width.plus(blurPx)
+                }
+                Brush.linearGradient(
+                    colors = listOf(color, Color.Transparent),
+                    start = Offset(size.width, size.height),
+                    end = Offset(endOffsetX, size.height)
+                )
+            }
+            ShadowSideDirection.Top -> {
+                val endOffsetY = if(sideStyle.drawInner) {
+                    blurPx
+                } else {
+                    topLeft = Offset(0f, -(blurPx))
+                    -(blurPx)
+                }
+                Brush.verticalGradient(
+                    colors = listOf(color, Color.Transparent),
+                    startY = 0f,
+                    endY = endOffsetY
+                )
+            }
+            ShadowSideDirection.Bottom -> {
+                val endOffsetY = if(sideStyle.drawInner) {
+                    size.height.minus(blurPx)
+                } else {
+                    size.height.plus(blurPx)
+                }
+                Brush.verticalGradient(
+                    colors = listOf(color, Color.Transparent),
+                    startY = size.height,
+                    endY = endOffsetY
+                )
+            }
+        }
+
+        drawRect(
+            brush = gradientBrush,
+            size = Size(width, height),
+            topLeft = topLeft
+        )
+    }
+
+    private fun ContentDrawScope.drawBlurMask(sideInfo: ShadowSideType.AllSide) {
         val shadowWidth = size.width
         val shadowHeight = size.height
 
@@ -115,12 +181,19 @@ private class AdvancedShadowModifierNode(
 
         val shadowSize = Size(shadowWidth, shadowHeight)
         val shadowOutline = shape.createOutline(shadowSize, layoutDirection, this)
+        val paint = Paint().apply {
+            this.color = color
+
+            val blurPx = blurDp.toPx()
+            if(blurPx > 0f) {
+                asFrameworkPaint().maskFilter = BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
+            }
+        }
 
         drawIntoCanvas {
             it.save()
-            if(clipType is ShadowClipType.ClipToShape) {
-                it.clipRect(getShadowRect(density, size, clipType.offsetX, clipType.offsetY))
-            }
+//            it.clipRect(getShadowRect(density, size, clipType.offsetX, clipType.offsetY))
+            it.translate(sideInfo.offsetX, sideInfo.offsetY)
             it.drawOutline(shadowOutline, paint)
             it.restore()
         }

@@ -8,6 +8,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.cevichepicante.composescrollshadow.data.ShadowSettingData
 
 enum class HidingShadowPosition {
     FIRST, LAST,
@@ -25,7 +26,7 @@ enum class HidingShadowPosition {
 fun ShadowIndicatedScrollScaffold(
     hidingShadowIndex: HidingShadowPosition,
     listState: LazyListState,
-    shadowSettings: AdvancedShadowSettings,
+    shadowSettings: ShadowSettingData,
     content: @Composable () -> Unit
 ) {
     val showShadow by remember(
@@ -50,7 +51,7 @@ fun ShadowIndicatedScrollScaffold(
                 shape = shadowSettings.shape,
                 color = shadowSettings.color,
                 blurDp = shadowSettings.blurDp,
-                clipType = shadowSettings.clipType,
+                sideType = shadowSettings.sideType,
                 visible = showShadow
             )
     ) {
