@@ -4,7 +4,6 @@ import android.graphics.BlurMaskFilter
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -69,14 +68,23 @@ private class AdvancedShadowModifierNode(
 ): Modifier.Node(), DrawModifierNode {
 
     override fun ContentDrawScope.draw() {
-        if(visible) {
-            if(sideType is ShadowSideType.SingleSide) {
-                drawGradient(sideType)
-            } else if(sideType is ShadowSideType.AllSide) {
-                drawBlurMask(sideType)
-            }
+        val shadowInner = sideType is ShadowSideType.SingleSide && sideType.drawInner
+        if(visible && shadowInner) {
+            drawContent()
+            drawShadow()
+        } else if(visible) {
+            drawShadow()
+            drawContent()
+        } else {
+            drawContent()
         }
-        drawContent()
+    }
+
+    private fun ContentDrawScope.drawShadow() {
+        when(sideType) {
+            is ShadowSideType.AllSide -> drawBlurMask(sideType)
+            is ShadowSideType.SingleSide -> drawGradient(sideType)
+        }
     }
 
     private fun ContentDrawScope.drawGradient(sideStyle: ShadowSideType.SingleSide) {
@@ -192,45 +200,9 @@ private class AdvancedShadowModifierNode(
 
         drawIntoCanvas {
             it.save()
-//            it.clipRect(getShadowRect(density, size, clipType.offsetX, clipType.offsetY))
             it.translate(sideInfo.offsetX, sideInfo.offsetY)
             it.drawOutline(shadowOutline, paint)
             it.restore()
         }
-    }
-
-    private fun getShadowRect(density: Float, size: Size, offsetX: Int, offsetY: Int): Rect {
-        val left: Float
-        val right: Float
-        val top: Float
-        val bottom: Float
-        val blurPx = density.times(blurDp.value)
-
-        offsetX.let {
-            if(it < 0) {
-                left = -(blurPx) * 2
-                right = size.width
-            } else if(it > 0) {
-                left = 0f
-                right = size.width.plus(blurPx * 2)
-            } else {
-                left = 0f
-                right = size.width
-            }
-        }
-        offsetY.let {
-            if(it < 0) {
-                top = -(blurPx) * 2
-                bottom = size.height
-            } else if(it > 0) {
-                top = 0f
-                bottom = size.height.plus(blurPx * 2)
-            } else {
-                top = 0f
-                bottom = size.height
-            }
-        }
-
-        return Rect(left, top, right, bottom)
     }
 }

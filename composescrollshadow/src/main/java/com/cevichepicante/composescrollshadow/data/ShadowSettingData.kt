@@ -12,17 +12,12 @@ data class ShadowSettingData(
 )
 
 sealed class ShadowSideType {
-    abstract val offsetX: Float
-    abstract val offsetY: Float
-
     data class AllSide(
-        override val offsetX: Float,
-        override val offsetY: Float
+        val offsetX: Float,
+        val offsetY: Float
     ): ShadowSideType()
 
     data class SingleSide(
-        override val offsetX: Float,
-        override val offsetY: Float,
         val direction: ShadowSideDirection,
         val drawInner: Boolean,
         val clipToBounds: Boolean
