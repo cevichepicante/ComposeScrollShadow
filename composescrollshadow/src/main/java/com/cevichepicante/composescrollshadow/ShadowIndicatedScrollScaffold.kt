@@ -1,5 +1,6 @@
 package com.cevichepicante.composescrollshadow
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
@@ -36,7 +37,16 @@ fun ShadowIndicatedScrollScaffold(
         derivedStateOf {
             when(hidingShadowIndex) {
                 HidingShadowPosition.FIRST -> {
-                    listState.firstVisibleItemScrollOffset != 0
+                    val index = listState.firstVisibleItemIndex
+                    val offset = listState.firstVisibleItemScrollOffset
+
+                    if(offset != 0) {
+                        true
+                    } else if(index != 0) {
+                        true
+                    } else {
+                        false
+                    }
                 } HidingShadowPosition.LAST -> {
                     listState.canScrollForward
                 }

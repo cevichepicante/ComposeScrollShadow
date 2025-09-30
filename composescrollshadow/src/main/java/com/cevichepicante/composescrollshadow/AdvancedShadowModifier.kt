@@ -88,6 +88,10 @@ private class AdvancedShadowModifierNode(
     }
 
     private fun ContentDrawScope.drawGradient(sideStyle: ShadowSideType.SingleSide) {
+        if(size.width <= 0f || size.height <= 0f) {
+            return
+        }
+
         val sideDirection = sideStyle.direction
         val blurPx = blurDp.toPx()
 
@@ -129,8 +133,8 @@ private class AdvancedShadowModifierNode(
                 }
                 Brush.linearGradient(
                     colors = listOf(color, Color.Transparent),
-                    start = Offset(0f, size.height),
-                    end = Offset(endOffsetX, size.height)
+                    start = Offset(0f, 0f),
+                    end = Offset(endOffsetX, 0f)
                 )
             }
             ShadowSideDirection.Right -> {
@@ -141,8 +145,8 @@ private class AdvancedShadowModifierNode(
                 }
                 Brush.linearGradient(
                     colors = listOf(color, Color.Transparent),
-                    start = Offset(size.width, size.height),
-                    end = Offset(endOffsetX, size.height)
+                    start = Offset(size.width, 0f),
+                    end = Offset(endOffsetX, 0f)
                 )
             }
             ShadowSideDirection.Top -> {
