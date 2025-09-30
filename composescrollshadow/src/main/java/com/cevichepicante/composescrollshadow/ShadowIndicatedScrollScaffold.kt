@@ -1,6 +1,5 @@
 package com.cevichepicante.composescrollshadow
 
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
@@ -9,7 +8,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.cevichepicante.composescrollshadow.data.ShadowSettingData
+import com.cevichepicante.composescrollshadow.data.ShadowSettings
 
 enum class HidingShadowPosition {
     FIRST, LAST,
@@ -27,7 +26,7 @@ enum class HidingShadowPosition {
 fun ShadowIndicatedScrollScaffold(
     hidingShadowIndex: HidingShadowPosition,
     listState: LazyListState,
-    shadowSettings: ShadowSettingData,
+    shadowSettings: ShadowSettings,
     content: @Composable () -> Unit
 ) {
     val showShadow by remember(
