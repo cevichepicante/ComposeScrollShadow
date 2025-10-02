@@ -19,7 +19,7 @@ import com.cevichepicante.composescrollshadow.data.ShadowSideDirection
 import com.cevichepicante.composescrollshadow.data.ShadowSideType
 
 @Composable
-internal fun Modifier.advancedShadow(
+fun Modifier.advancedShadow(
     shape: Shape,
     color: Color,
     blurDp: Dp,
@@ -47,7 +47,7 @@ private data class AdvancedShadowElement(
     override fun create(): AdvancedShadowModifierNode {
         return AdvancedShadowModifierNode(
             shape = shape,
-            color = color,
+            shadowColor = color,
             blurDp = blurDp,
             sideType = sideType,
             visible = visible
@@ -61,7 +61,7 @@ private data class AdvancedShadowElement(
 
 private class AdvancedShadowModifierNode(
     private val shape: Shape,
-    private val color: Color,
+    private val shadowColor: Color,
     private val blurDp: Dp,
     private val sideType: ShadowSideType,
     var visible: Boolean
@@ -132,7 +132,7 @@ private class AdvancedShadowModifierNode(
                     -(blurPx)
                 }
                 Brush.linearGradient(
-                    colors = listOf(color, Color.Transparent),
+                    colors = listOf(shadowColor, Color.Transparent),
                     start = Offset(0f, 0f),
                     end = Offset(endOffsetX, 0f)
                 )
@@ -144,7 +144,7 @@ private class AdvancedShadowModifierNode(
                     size.width.plus(blurPx)
                 }
                 Brush.linearGradient(
-                    colors = listOf(color, Color.Transparent),
+                    colors = listOf(shadowColor, Color.Transparent),
                     start = Offset(size.width, 0f),
                     end = Offset(endOffsetX, 0f)
                 )
@@ -157,7 +157,7 @@ private class AdvancedShadowModifierNode(
                     -(blurPx)
                 }
                 Brush.verticalGradient(
-                    colors = listOf(color, Color.Transparent),
+                    colors = listOf(shadowColor, Color.Transparent),
                     startY = 0f,
                     endY = endOffsetY
                 )
@@ -169,7 +169,7 @@ private class AdvancedShadowModifierNode(
                     size.height.plus(blurPx)
                 }
                 Brush.verticalGradient(
-                    colors = listOf(color, Color.Transparent),
+                    colors = listOf(shadowColor, Color.Transparent),
                     startY = size.height,
                     endY = endOffsetY
                 )
@@ -194,7 +194,7 @@ private class AdvancedShadowModifierNode(
         val shadowSize = Size(shadowWidth, shadowHeight)
         val shadowOutline = shape.createOutline(shadowSize, layoutDirection, this)
         val paint = Paint().apply {
-            this.color = color
+            this.color = shadowColor
 
             val blurPx = blurDp.toPx()
             if(blurPx > 0f) {

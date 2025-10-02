@@ -1,5 +1,6 @@
 package com.cevichepicante.composescrollshadow
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
@@ -27,6 +28,7 @@ fun ShadowIndicatedScrollScaffold(
     hidingShadowIndex: HidingShadowPosition,
     listState: LazyListState,
     shadowSettings: ShadowSettings,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     val showShadow by remember(
@@ -54,8 +56,7 @@ fun ShadowIndicatedScrollScaffold(
     }
 
     Box(
-        modifier = Modifier
-            .wrapContentSize()
+        modifier = modifier
             .advancedShadow(
                 shape = shadowSettings.shape,
                 color = shadowSettings.color,

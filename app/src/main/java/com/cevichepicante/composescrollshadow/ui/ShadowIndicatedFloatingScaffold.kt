@@ -1,4 +1,4 @@
-package com.cevichepicante.composescrollshadow
+package com.cevichepicante.composescrollshadow.ui
 
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import com.cevichepicante.composescrollshadow.advancedShadow
 import com.cevichepicante.composescrollshadow.data.ShadowSettings
 import kotlinx.coroutines.flow.map
 
