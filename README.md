@@ -63,7 +63,7 @@ Add it in app level build.gradle:
 
 ```
 dependencies {
-    implementation 'com.github.cevichepicante:ComposeScrollShadow:v1.0.0'
+    implementation 'com.github.cevichepicante:ComposeScrollShadow:1.0.1'
 }
 ```
 
