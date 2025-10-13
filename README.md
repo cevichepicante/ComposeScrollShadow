@@ -9,9 +9,9 @@
 - **Customizable shadowed layer**: color, shape, blur weight, direction
 <br>
 
-<a href="https://github.com/cevichepicante/ComposeScrollShadow/blob/main/app/src/main/java/com/cevichepicante/composescrollshadow/ui/ReadMeSample.kt" target="_blank">Sample</a>
+### Sample
 
-- ShadowIndicatedScaffold
+- <a href="https://github.com/cevichepicante/ComposeScrollShadow/blob/c2e2f46533e1eca54cd93d46ca90db9c4f43fa0f/app/src/main/java/com/cevichepicante/composescrollshadow/ui/ReadMeSample.kt#L279">ShadowIndicatedScaffold</a>
 
 <center>
 <table>
@@ -29,7 +29,7 @@
 </center>
 <br>
 
-- ShadowIndicatedScrollScaffold
+- <a href="https://github.com/cevichepicante/ComposeScrollShadow/blob/c2e2f46533e1eca54cd93d46ca90db9c4f43fa0f/app/src/main/java/com/cevichepicante/composescrollshadow/ui/ReadMeSample.kt#L60">ShadowIndicatedScrollScaffold</a>
 
 <center>
 <table>
