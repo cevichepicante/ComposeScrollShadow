@@ -9,7 +9,7 @@
 - **Customizable shadowed layer**: color, shape, blur weight, direction
 <br>
 
-### Sample
+<a href="https://github.com/cevichepicante/ComposeScrollShadow/blob/main/app/src/main/java/com/cevichepicante/composescrollshadow/ui/ReadMeSample.kt" target="_blank">Sample</a>
 
 - ShadowIndicatedScaffold
 
