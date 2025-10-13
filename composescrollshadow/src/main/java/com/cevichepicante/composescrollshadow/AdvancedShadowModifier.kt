@@ -19,7 +19,7 @@ import com.cevichepicante.composescrollshadow.data.ShadowSideDirection
 import com.cevichepicante.composescrollshadow.data.ShadowSideType
 
 @Composable
-fun Modifier.advancedShadow(
+internal fun Modifier.advancedShadow(
     shape: Shape,
     color: Color,
     blurDp: Dp,

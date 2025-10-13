@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -16,13 +17,14 @@ enum class HidingShadowPosition {
 }
 
 /**
- * This scaffold adds [content] shadow layer depends on list's scrolling state.
+ * This scaffold adds [content] shadowed layer depends on list's scrolling state.
  *
- * @param hidingShadowIndex is the part of LazyList where the list reached to make shadow invisible
- * @param shadowSettings for style of shadow layer
+ * @param hidingShadowIndex is the part of LazyList where the list reached to hide shadow
+ * @param shadowSettings for style of shadowed layer
  * @param content Composable which will be drew with shadow
  *
  */
+
 @Composable
 fun ShadowIndicatedScrollScaffold(
     hidingShadowIndex: HidingShadowPosition,
