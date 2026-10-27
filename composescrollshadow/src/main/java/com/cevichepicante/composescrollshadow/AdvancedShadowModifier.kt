@@ -1,7 +1,6 @@
 package com.cevichepicante.composescrollshadow
 
 import android.graphics.BlurMaskFilter
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -14,11 +13,11 @@ import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.unit.Dp
 import com.cevichepicante.composescrollshadow.data.ShadowSideDirection
 import com.cevichepicante.composescrollshadow.data.ShadowSideType
 
-@Composable
 internal fun Modifier.advancedShadow(
     shape: Shape,
     color: Color,
@@ -55,19 +54,36 @@ private data class AdvancedShadowElement(
     }
 
     override fun update(node: AdvancedShadowModifierNode) {
+        node.shape = shape
+        node.shadowColor = color
+        node.blurDp = blurDp
+        node.sideType = sideType
         node.visible = visible
+    }
+
+    override fun InspectorInfo.inspectableProperties() {
+        name = "advancedShadow"
+        properties["shape"] = shape
+        properties["color"] = color
+        properties["blurDp"] = blurDp
+        properties["sideType"] = sideType
+        properties["visible"] = visible
     }
 }
 
 private class AdvancedShadowModifierNode(
-    private val shape: Shape,
-    private val shadowColor: Color,
-    private val blurDp: Dp,
-    private val sideType: ShadowSideType,
+    var shape: Shape,
+    var shadowColor: Color,
+    var blurDp: Dp,
+    var sideType: ShadowSideType,
     var visible: Boolean
 ): Modifier.Node(), DrawModifierNode {
 
+    private val blurPaint = Paint()
+    private var appliedBlurPx = -1f
+
     override fun ContentDrawScope.draw() {
+        val sideType = sideType
         val shadowInner = sideType is ShadowSideType.SingleSide && sideType.drawInner
         if(visible && shadowInner) {
             drawContent()
@@ -81,7 +97,7 @@ private class AdvancedShadowModifierNode(
     }
 
     private fun ContentDrawScope.drawShadow() {
-        when(sideType) {
+        when(val sideType = sideType) {
             is ShadowSideType.AllSide -> drawBlurMask(sideType)
             is ShadowSideType.SingleSide -> drawGradient(sideType)
         }
@@ -193,19 +209,24 @@ private class AdvancedShadowModifierNode(
 
         val shadowSize = Size(shadowWidth, shadowHeight)
         val shadowOutline = shape.createOutline(shadowSize, layoutDirection, this)
-        val paint = Paint().apply {
-            this.color = shadowColor
+        if(blurPaint.color != shadowColor) {
+            blurPaint.color = shadowColor
+        }
 
-            val blurPx = blurDp.toPx()
-            if(blurPx > 0f) {
-                asFrameworkPaint().maskFilter = BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
+        val blurPx = blurDp.toPx()
+        if(blurPx != appliedBlurPx) {
+            blurPaint.asFrameworkPaint().maskFilter = if(blurPx > 0f) {
+                BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
+            } else {
+                null
             }
+            appliedBlurPx = blurPx
         }
 
         drawIntoCanvas {
             it.save()
             it.translate(sideInfo.offsetX, sideInfo.offsetY)
-            it.drawOutline(shadowOutline, paint)
+            it.drawOutline(shadowOutline, blurPaint)
             it.restore()
         }
     }
