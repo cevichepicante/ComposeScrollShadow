@@ -259,7 +259,7 @@ private class AdvancedShadowModifierNode(
 
         drawIntoCanvas {
             it.save()
-            it.translate(sideInfo.offsetX, sideInfo.offsetY)
+            it.translate(sideInfo.offsetX.toPx(), sideInfo.offsetY.toPx())
             it.drawOutline(shadowOutline, blurPaint)
             it.restore()
         }

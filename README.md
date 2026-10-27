@@ -63,8 +63,12 @@ Add it in app level build.gradle:
 
 ```
 dependencies {
-    implementation 'com.github.cevichepicante:ComposeScrollShadow:1.0.1'
+    implementation 'com.github.cevichepicante:ComposeScrollShadow:2.0.0'
 }
 ```
 
+### Changes in 2.0.0
 
+- **Breaking**: `ShadowSideType.AllSide(offsetX, offsetY)` now takes `Dp` instead of `Float`(px),
+  so the shadow offset looks the same across screen densities.
+    - Migration: `AllSide(0f, 0f)` → `AllSide(0.dp, 0.dp)`
