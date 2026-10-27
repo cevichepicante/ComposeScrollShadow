@@ -1,7 +1,6 @@
 package com.cevichepicante.composescrollshadow
 
 import android.graphics.BlurMaskFilter
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -18,7 +17,6 @@ import androidx.compose.ui.unit.Dp
 import com.cevichepicante.composescrollshadow.data.ShadowSideDirection
 import com.cevichepicante.composescrollshadow.data.ShadowSideType
 
-@Composable
 internal fun Modifier.advancedShadow(
     shape: Shape,
     color: Color,
