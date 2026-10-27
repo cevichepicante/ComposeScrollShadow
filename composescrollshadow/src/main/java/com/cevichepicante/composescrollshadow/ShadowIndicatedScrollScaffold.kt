@@ -40,17 +40,9 @@ fun ShadowIndicatedScrollScaffold(
         derivedStateOf {
             when(hidingShadowIndex) {
                 HidingShadowPosition.FIRST -> {
-                    val index = listState.firstVisibleItemIndex
-                    val offset = listState.firstVisibleItemScrollOffset
-
-                    if(offset != 0) {
-                        true
-                    } else if(index != 0) {
-                        true
-                    } else {
-                        false
-                    }
-                } HidingShadowPosition.LAST -> {
+                    listState.canScrollBackward
+                }
+                HidingShadowPosition.LAST -> {
                     listState.canScrollForward
                 }
             }
