@@ -17,10 +17,13 @@ data class ShadowSettings(
 sealed class ShadowSideType {
     /**
      * Shadow will appear surrounding the content.
+     *
+     * @param offsetX horizontal offset of the shadow.
+     * @param offsetY vertical offset of the shadow.
      */
     data class AllSide(
-        val offsetX: Float,
-        val offsetY: Float
+        val offsetX: Dp,
+        val offsetY: Dp
     ): ShadowSideType()
 
     /**

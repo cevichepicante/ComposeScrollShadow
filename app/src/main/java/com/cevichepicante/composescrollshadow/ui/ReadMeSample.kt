@@ -341,7 +341,7 @@ fun SwipingPhotoArea(modifier: Modifier = Modifier) {
                 shape = RoundedCornerShape(18.dp),
                 color = Color.Black,
                 blurDp = 10.dp,
-                sideType = ShadowSideType.AllSide(0f, 0f),
+                sideType = ShadowSideType.AllSide(0.dp, 0.dp),
             ),
             modifier = Modifier.padding(top = 20.dp)
         ) {
