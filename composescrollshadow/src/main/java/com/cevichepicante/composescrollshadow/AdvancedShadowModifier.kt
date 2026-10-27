@@ -55,19 +55,24 @@ private data class AdvancedShadowElement(
     }
 
     override fun update(node: AdvancedShadowModifierNode) {
+        node.shape = shape
+        node.shadowColor = color
+        node.blurDp = blurDp
+        node.sideType = sideType
         node.visible = visible
     }
 }
 
 private class AdvancedShadowModifierNode(
-    private val shape: Shape,
-    private val shadowColor: Color,
-    private val blurDp: Dp,
-    private val sideType: ShadowSideType,
+    var shape: Shape,
+    var shadowColor: Color,
+    var blurDp: Dp,
+    var sideType: ShadowSideType,
     var visible: Boolean
 ): Modifier.Node(), DrawModifierNode {
 
     override fun ContentDrawScope.draw() {
+        val sideType = sideType
         val shadowInner = sideType is ShadowSideType.SingleSide && sideType.drawInner
         if(visible && shadowInner) {
             drawContent()
@@ -81,7 +86,7 @@ private class AdvancedShadowModifierNode(
     }
 
     private fun ContentDrawScope.drawShadow() {
-        when(sideType) {
+        when(val sideType = sideType) {
             is ShadowSideType.AllSide -> drawBlurMask(sideType)
             is ShadowSideType.SingleSide -> drawGradient(sideType)
         }
