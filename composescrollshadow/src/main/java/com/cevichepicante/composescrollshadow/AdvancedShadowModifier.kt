@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.unit.Dp
 import com.cevichepicante.composescrollshadow.data.ShadowSideDirection
 import com.cevichepicante.composescrollshadow.data.ShadowSideType
@@ -58,6 +59,15 @@ private data class AdvancedShadowElement(
         node.blurDp = blurDp
         node.sideType = sideType
         node.visible = visible
+    }
+
+    override fun InspectorInfo.inspectableProperties() {
+        name = "advancedShadow"
+        properties["shape"] = shape
+        properties["color"] = color
+        properties["blurDp"] = blurDp
+        properties["sideType"] = sideType
+        properties["visible"] = visible
     }
 }
 
