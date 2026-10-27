@@ -1,6 +1,8 @@
 package com.cevichepicante.composescrollshadow
 
 import android.graphics.BlurMaskFilter
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -21,6 +23,9 @@ import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.unit.Dp
 import com.cevichepicante.composescrollshadow.data.ShadowSideDirection
 import com.cevichepicante.composescrollshadow.data.ShadowSideType
+import kotlinx.coroutines.launch
+
+private const val SHADOW_FADE_DURATION_MILLIS = 200
 
 internal fun Modifier.advancedShadow(
     shape: Shape,
@@ -80,26 +85,54 @@ private class AdvancedShadowModifierNode(
     var shadowColor: Color,
     var blurDp: Dp,
     var sideType: ShadowSideType,
-    var visible: Boolean
+    visible: Boolean
 ): Modifier.Node(), DrawModifierNode {
 
     private val blurPaint = Paint()
     private var appliedBlurPx = -1f
     private val contentPath = Path()
     private val shiftedPath = Path()
+    private val shadowAlpha = Animatable(if(visible) 1f else 0f)
+
+    var visible: Boolean = visible
+        set(value) {
+            if(field == value) {
+                return
+            }
+            field = value
+            if(isAttached) {
+                coroutineScope.launch {
+                    shadowAlpha.animateTo(
+                        targetValue = if(value) 1f else 0f,
+                        animationSpec = tween(SHADOW_FADE_DURATION_MILLIS)
+                    )
+                }
+            }
+        }
+
+    override fun onAttach() {
+        coroutineScope.launch {
+            shadowAlpha.snapTo(if(visible) 1f else 0f)
+        }
+    }
 
     override fun ContentDrawScope.draw() {
         val sideType = sideType
         val shadowInner = sideType is ShadowSideType.SingleSide && sideType.drawInner
-        if(visible && shadowInner) {
+        val shadowShown = shadowAlpha.value > 0f
+        if(shadowShown && shadowInner) {
             drawContent()
             drawShadow()
-        } else if(visible) {
+        } else if(shadowShown) {
             drawShadow()
             drawContent()
         } else {
             drawContent()
         }
+    }
+
+    private fun animatedShadowColor(): Color {
+        return shadowColor.copy(alpha = shadowColor.alpha * shadowAlpha.value)
     }
 
     private fun ContentDrawScope.drawShadow() {
@@ -116,6 +149,7 @@ private class AdvancedShadowModifierNode(
 
         val sideDirection = sideStyle.direction
         val blurPx = blurDp.toPx()
+        val gradientColor = animatedShadowColor()
 
         var topLeft = Offset.Zero
         val width: Float
@@ -154,7 +188,7 @@ private class AdvancedShadowModifierNode(
                     -(blurPx)
                 }
                 Brush.linearGradient(
-                    colors = listOf(shadowColor, Color.Transparent),
+                    colors = listOf(gradientColor, Color.Transparent),
                     start = Offset(0f, 0f),
                     end = Offset(endOffsetX, 0f)
                 )
@@ -166,7 +200,7 @@ private class AdvancedShadowModifierNode(
                     size.width.plus(blurPx)
                 }
                 Brush.linearGradient(
-                    colors = listOf(shadowColor, Color.Transparent),
+                    colors = listOf(gradientColor, Color.Transparent),
                     start = Offset(size.width, 0f),
                     end = Offset(endOffsetX, 0f)
                 )
@@ -179,7 +213,7 @@ private class AdvancedShadowModifierNode(
                     -(blurPx)
                 }
                 Brush.verticalGradient(
-                    colors = listOf(shadowColor, Color.Transparent),
+                    colors = listOf(gradientColor, Color.Transparent),
                     startY = 0f,
                     endY = endOffsetY
                 )
@@ -191,7 +225,7 @@ private class AdvancedShadowModifierNode(
                     size.height.plus(blurPx)
                 }
                 Brush.verticalGradient(
-                    colors = listOf(shadowColor, Color.Transparent),
+                    colors = listOf(gradientColor, Color.Transparent),
                     startY = size.height,
                     endY = endOffsetY
                 )
@@ -243,8 +277,9 @@ private class AdvancedShadowModifierNode(
 
         val shadowSize = Size(shadowWidth, shadowHeight)
         val shadowOutline = shape.createOutline(shadowSize, layoutDirection, this)
-        if(blurPaint.color != shadowColor) {
-            blurPaint.color = shadowColor
+        val paintColor = animatedShadowColor()
+        if(blurPaint.color != paintColor) {
+            blurPaint.color = paintColor
         }
 
         val blurPx = blurDp.toPx()
