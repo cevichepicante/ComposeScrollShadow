@@ -71,6 +71,9 @@ private class AdvancedShadowModifierNode(
     var visible: Boolean
 ): Modifier.Node(), DrawModifierNode {
 
+    private val blurPaint = Paint()
+    private var appliedBlurPx = -1f
+
     override fun ContentDrawScope.draw() {
         val sideType = sideType
         val shadowInner = sideType is ShadowSideType.SingleSide && sideType.drawInner
@@ -198,19 +201,24 @@ private class AdvancedShadowModifierNode(
 
         val shadowSize = Size(shadowWidth, shadowHeight)
         val shadowOutline = shape.createOutline(shadowSize, layoutDirection, this)
-        val paint = Paint().apply {
-            this.color = shadowColor
+        if(blurPaint.color != shadowColor) {
+            blurPaint.color = shadowColor
+        }
 
-            val blurPx = blurDp.toPx()
-            if(blurPx > 0f) {
-                asFrameworkPaint().maskFilter = BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
+        val blurPx = blurDp.toPx()
+        if(blurPx != appliedBlurPx) {
+            blurPaint.asFrameworkPaint().maskFilter = if(blurPx > 0f) {
+                BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
+            } else {
+                null
             }
+            appliedBlurPx = blurPx
         }
 
         drawIntoCanvas {
             it.save()
             it.translate(sideInfo.offsetX, sideInfo.offsetY)
-            it.drawOutline(shadowOutline, paint)
+            it.drawOutline(shadowOutline, blurPaint)
             it.restore()
         }
     }
