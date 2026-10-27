@@ -5,11 +5,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
@@ -81,6 +85,8 @@ private class AdvancedShadowModifierNode(
 
     private val blurPaint = Paint()
     private var appliedBlurPx = -1f
+    private val contentPath = Path()
+    private val shiftedPath = Path()
 
     override fun ContentDrawScope.draw() {
         val sideType = sideType
@@ -192,11 +198,39 @@ private class AdvancedShadowModifierNode(
             }
         }
 
-        drawRect(
-            brush = gradientBrush,
-            size = Size(width, height),
-            topLeft = topLeft
-        )
+        val outline = shape.createOutline(size, layoutDirection, this)
+        contentPath.rewind()
+        contentPath.addOutline(outline)
+
+        if(sideStyle.drawInner) {
+            clipPath(contentPath) {
+                drawRect(
+                    brush = gradientBrush,
+                    size = Size(width, height),
+                    topLeft = topLeft
+                )
+            }
+        } else {
+            val shiftOffset = when(sideDirection) {
+                ShadowSideDirection.Left -> Offset(-(blurPx), 0f)
+                ShadowSideDirection.Right -> Offset(blurPx, 0f)
+                ShadowSideDirection.Top -> Offset(0f, -(blurPx))
+                ShadowSideDirection.Bottom -> Offset(0f, blurPx)
+            }
+            shiftedPath.rewind()
+            shiftedPath.addOutline(outline)
+            shiftedPath.translate(shiftOffset)
+
+            clipPath(contentPath, ClipOp.Difference) {
+                clipPath(shiftedPath) {
+                    drawRect(
+                        brush = gradientBrush,
+                        size = Size(width, height),
+                        topLeft = topLeft
+                    )
+                }
+            }
+        }
     }
 
     private fun ContentDrawScope.drawBlurMask(sideInfo: ShadowSideType.AllSide) {
