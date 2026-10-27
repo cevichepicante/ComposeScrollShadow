@@ -1,10 +1,7 @@
 package com.cevichepicante.composescrollshadow
 
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -17,9 +14,11 @@ enum class HidingShadowPosition {
 }
 
 /**
- * This scaffold adds [content] shadowed layer depends on list's scrolling state.
+ * This scaffold adds [content] shadowed layer depends on scrolling state.
  *
- * @param hidingShadowIndex is the part of LazyList where the list reached to hide shadow
+ * @param hidingShadowIndex is the part of scrollable content where it reached to hide shadow
+ * @param scrollableState state of the scrollable content such as
+ * LazyListState, LazyGridState or ScrollState
  * @param shadowSettings for style of shadowed layer
  * @param content Composable which will be drew with shadow
  *
@@ -28,30 +27,22 @@ enum class HidingShadowPosition {
 @Composable
 fun ShadowIndicatedScrollScaffold(
     hidingShadowIndex: HidingShadowPosition,
-    listState: LazyListState,
+    scrollableState: ScrollableState,
     shadowSettings: ShadowSettings,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     val showShadow by remember(
         hidingShadowIndex,
-        listState
+        scrollableState
     ) {
         derivedStateOf {
             when(hidingShadowIndex) {
                 HidingShadowPosition.FIRST -> {
-                    val index = listState.firstVisibleItemIndex
-                    val offset = listState.firstVisibleItemScrollOffset
-
-                    if(offset != 0) {
-                        true
-                    } else if(index != 0) {
-                        true
-                    } else {
-                        false
-                    }
-                } HidingShadowPosition.LAST -> {
-                    listState.canScrollForward
+                    scrollableState.canScrollBackward
+                }
+                HidingShadowPosition.LAST -> {
+                    scrollableState.canScrollForward
                 }
             }
         }

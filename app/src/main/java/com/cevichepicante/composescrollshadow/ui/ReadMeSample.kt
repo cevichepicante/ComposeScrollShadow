@@ -149,7 +149,7 @@ fun ChatList(
 
     ShadowIndicatedScrollScaffold(
         hidingShadowIndex = HidingShadowPosition.FIRST,
-        listState = listState,
+        scrollableState = listState,
         modifier = modifier,
         shadowSettings = ShadowSettings(
             shape = RectangleShape,
@@ -235,7 +235,7 @@ fun ChatInput(
 ) {
     ShadowIndicatedScrollScaffold(
         hidingShadowIndex = HidingShadowPosition.LAST,
-        listState = listState,
+        scrollableState = listState,
         modifier = modifier,
         shadowSettings = ShadowSettings(
             shape = RectangleShape,
